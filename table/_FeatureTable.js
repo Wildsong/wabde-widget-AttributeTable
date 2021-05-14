@@ -1173,7 +1173,8 @@ define([
           function(datas) {
             // seleted data process.
             var oid = this.layer.objectIdField;
-            var _exportData = [];
+            // export all in related table need export the data filtered
+            var _exportData = datas ? datas : [];
             var isSameProjection = this.layer.fullExtent.spatialReference.equals(
               this.map.extent.spatialReference);
 
@@ -1917,6 +1918,10 @@ define([
       var autoWidth = (20 * 1 + 100 * results.fields.length) < html.getMarginBox(this.domNode).w;
       //create dgrid, only one time
       this.createTable(columns, store, recordCounts, autoWidth);
+      //Use 'presentation' instead of default 'columnheader' for selectionHandler on header
+      var selectionHandleOnHeader = this.grid.domNode.querySelectorAll('.dgrid-header .dgrid-column-selectionHandle');
+      selectionHandleOnHeader.length > 0 && selectionHandleOnHeader[0].setAttribute('role', 'presentation');
+
       this._currentExtent = nExtent;
 
       var selectedFeatures = this.layer.getSelectedFeatures();
@@ -2232,7 +2237,9 @@ define([
     getSelectedRowsData: function() {
       var def = new Deferred();
       var selectedIds = this._getTableSelectedIds() || [];
-      if (!this.grid || !selectedIds.length) {
+      // related table: selectedIds.length = 0, but need to get the data that's being presented
+      // return null will export all data
+      if (!this.grid) { // || !selectedIds.length
         def.resolve(null);
         return def;
       }
@@ -2447,7 +2454,11 @@ define([
           });
         }
         this.setSelectedNumber();
+        //emit the feature selected event
+        this.onFeatureSelectionChange();
       } else {
+        //emit the feature selected event
+        this.onFeatureSelectionChange();
         this._popupMessage(this.nls.dataNotAvailable);
       }
     },
@@ -2952,6 +2963,8 @@ define([
         if (ids.length > 0) {
           this._goToFeatures(ids, 'rowclick');
         } else {
+          //emit the feature selected event
+          this.onFeatureSelectionChange();
           this._setSelection([]);
         }
       }

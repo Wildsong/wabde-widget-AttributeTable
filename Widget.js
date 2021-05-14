@@ -134,7 +134,12 @@ define([
           parent: this
         });
         this._resourceManager.setConfig(this.config);
-
+        //Broadcast the selection info data through the widget
+        this._resourceManager.onFeatureSelectionChange = lang.hitch(this, function (selectionInfo) {
+          this.publishData({
+            'selectionInfo': selectionInfo
+          });
+        });
         //eg: TabTheme maxmize or minimize
         this.own(topic.subscribe('changeMapPosition', lang.hitch(this, this._onMapPositionChange)));
         attrUtils.readLayerInfosObj(this.map).then(lang.hitch(this, function(layerInfosObj) {
@@ -855,7 +860,7 @@ define([
           style: "width: 100%;"
         }, tabDiv);
         html.setStyle(this.tabContainer.domNode, 'height', (this.normalHeight) + 'px');
-        
+
         //if(has("mozilla")){
         //  this.tabContainer.tablist.containerNode.style.width = "50000px";
         //}
@@ -864,7 +869,7 @@ define([
 
         var configInfos = this._resourceManager.getConfigInfos();
         var len = configInfos.length;
-        
+
         for (var j = 0; j < len; j++) {
           var configInfo = configInfos[j];
           if (configInfo.show) {
